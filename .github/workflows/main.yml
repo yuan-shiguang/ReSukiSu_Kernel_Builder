@@ -88,17 +88,12 @@ jobs:
 
       - name: Apply kernel patch
         run: |
-          while read -r line; do
-              if [ -z "$line" ] || [[ "$line" == "#"* ]]; then
-                  continue
-              fi
-              echo "Applying kernel patch: $line"
-              git apply "this-repo/patches/$line"
-          done <<<"$kernel_patch"
           git clone https://github.com/JackA1ltman/NonGKI_Kernel_Build_2nd.git --depth=1
           cp NonGKI_Kernel_Build_2nd/Patches/susfs_inline_hook_patches.sh ./susfs_inline_hook_patches.sh
           chmod +x ./susfs_inline_hook_patches.sh
           ./susfs_inline_hook_patches.sh
+          cp NonGKI_Kernel_Build_2nd/Patches/Patch/susfs_patch_to_4.9.patch ./susfs_patch_to_4.9.patch
+          patch -p1 < ./susfs_patch_to_4.9.patch
 
       - name: "AOSP-Clang: Restore"
         id: aosp_clang_restore
