@@ -1,16 +1,15 @@
 name: Build
 
 env:
-  kernel_repository: yuan-shiguang/kernel_xiaomi_sdm845
-  kernel_branch: dipper_4.9
+  kernel_repository: PixelExperience-Devices/kernel_xiaomi_sdm845
+  kernel_branch: fourteen
   device: dipper
   clang_version: r416183b
   defconfig: |
+    vendor/sdm845-perf_defconfig
     dipper_defconfig
-    vendor/xiaomi/dipper.config
-    vendor/xiaomi/mi845_defconfig
   kernel_patch: |
-    #backport-path-umount.patch
+    susfs_patch_to_4.9.patch
   kernelsu_patch: |
 
 on:
@@ -78,9 +77,14 @@ jobs:
 
       - name: Setup KernelSU
         run: |
+          curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash
           echo 'CONFIG_KPROBES=y' >>arch/arm64/configs/merged_defconfig
           echo 'CONFIG_HAVE_KPROBES=y' >>arch/arm64/configs/merged_defconfig
           echo 'CONFIG_KPROBE_EVENTS=y' >>arch/arm64/configs/merged_defconfig
+          echo 'CONFIG_KSU_SUS=y' >>arch/arm64/configs/merged_defconfig
+          echo 'CONFIG_KALLSYMS_ALL=y' >>arch/arm64/configs/merged_defconfig
+          echo 'CONFIG_KSU=y' >>arch/arm64/configs/merged_defconfig
+          
 
       - name: Apply kernel patch
         run: |
@@ -91,6 +95,10 @@ jobs:
               echo "Applying kernel patch: $line"
               git apply "this-repo/patches/$line"
           done <<<"$kernel_patch"
+          git clone https://github.com/JackA1ltman/NonGKI_Kernel_Build_2nd.git --depth=1
+          cp NonGKI_Kernel_Build_2nd/Patches/susfs_inline_hook_patches.sh ./susfs_inline_hook_patches.sh
+          chmod +x ./susfs_inline_hook_patches.sh
+          ./susfs_inline_hook_patches.sh
 
       - name: "AOSP-Clang: Restore"
         id: aosp_clang_restore
