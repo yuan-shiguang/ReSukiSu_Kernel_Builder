@@ -1,8 +1,8 @@
 name: Build
 
 env:
-  kernel_repository: PixelExperience-Devices/kernel_xiaomi_sdm845
-  kernel_branch: fourteen
+  kernel_repository: Evolution-X-Devices/kernel_xiaomi_sdm845
+  kernel_branch: bka
   device: dipper
   clang_version: r416183b
   defconfig: |
