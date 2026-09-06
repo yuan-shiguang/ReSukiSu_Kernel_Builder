@@ -1,4 +1,4 @@
-name: Check and Build
+name: Build
 
 env:
   kernel_repository: Evolution-X-Devices/kernel_xiaomi_sdm845
@@ -10,7 +10,6 @@ env:
     vendor/xiaomi/mi845_defconfig
   kernel_patch: |
     susfs_patch_to_4.9.patch
-    susfs_inline_hook_patches.sh
   kernelsu_patch: |
 
 on:
@@ -78,53 +77,24 @@ jobs:
 
       - name: Setup KernelSU
         run: |
-          # https://kernelsu.org/zh_CN/guide/how-to-integrate-for-non-gki.html
           curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash
-
+          echo 'CONFIG_KPROBES=y' >>arch/arm64/configs/merged_defconfig
+          echo 'CONFIG_HAVE_KPROBES=y' >>arch/arm64/configs/merged_defconfig
+          echo 'CONFIG_KPROBE_EVENTS=y' >>arch/arm64/configs/merged_defconfig
+          echo 'CONFIG_KSU_SUS=y' >>arch/arm64/configs/merged_defconfig
+          echo 'CONFIG_KALLSYMS_ALL=y' >>arch/arm64/configs/merged_defconfig
           echo 'CONFIG_KSU=y' >>arch/arm64/configs/merged_defconfig
-          echo 'CONFIG_KSU_SUSFS=y' >>arch/arm64/configs/merged_defconfig
-          # echo 'CONFIG_KPROBE_EVENTS=y' >>arch/arm64/configs/merged_defconfig
-
-          echo '#include <linux/static_key.h>' >>KernelSU/kernel/core/init.c
-          echo '#include <linux/export.h>' >>KernelSU/kernel/core/init.c
-          echo '' >>KernelSU/kernel/core/init.c
-
-          echo 'DEFINE_STATIC_KEY_FALSE(ksu_init_rc_hook_key_false);' >>KernelSU/kernel/core/init.c
-          echo 'EXPORT_SYMBOL(ksu_init_rc_hook_key_false);' >>KernelSU/kernel/core/init.c
-
-          echo 'DEFINE_STATIC_KEY_FALSE(ksu_input_hook_key_false);' >>KernelSU/kernel/core/init.c
-          echo 'EXPORT_SYMBOL(ksu_input_hook_key_false);' >>KernelSU/kernel/core/init.c
+          
 
       - name: Apply kernel patch
         run: |
-         while read -r line; do
-             if [ -z "$line" ] || [[ "$line" == "#"* ]]; then
-                 continue
-             fi
-             echo "Processing: $line"
-             if [[ "$line" == *.sh ]]; then
-             bash "this-repo/patches/$line"
-         else
-             git apply "this-repo/patches/$line"
-             fi
-          done <<<"$kernel_patch"
-
-      - name: Fix susfs_extra_works
-        run: |
-             if [ -f fs/susfs.c ]; then
-              echo '' >> fs/susfs.c
-              echo 'void susfs_extra_works(void) {}' >> fs/susfs.c
-             fi
-
-      - name: Apply KernelSU patch
-        run: |
-          while read -r line; do
-              if [ -z "$line" ] || [[ "$line" == "#"* ]]; then
-                  continue
-              fi
-              echo "Applying KernelSU patch: $line"
-              git apply -p2 --directory KernelSU/kernel "this-repo/patches/$line"
-          done <<<"$kernelsu_patch"
+          git clone https://github.com/JackA1ltman/NonGKI_Kernel_Build_2nd.git
+          cp NonGKI_Kernel_Build_2nd/Patches/Patch/susfs_patch_to_4.9.patch ./susfs_patch_to_4.9.patch
+          patch -p1 -t < ./susfs_patch_to_4.9.patch
+          cp NonGKI_Kernel_Build_2nd/Patches/susfs_inline_hook_patches.sh ./susfs_inline_hook_patches.sh
+          chmod +x ./susfs_inline_hook_patches.sh
+          ./susfs_inline_hook_patches.sh
+          
 
       - name: "AOSP-Clang: Restore"
         id: aosp_clang_restore
@@ -203,10 +173,9 @@ jobs:
           device.name1=$device
           '; }
 
-          block=auto
-          is_slot_device=auto
-          ramdisk_compression=auto
-          patch_vbmeta_flag=auto
+          block=/dev/block/bootdevice/by-name/boot;
+          is_slot_device=0;
+          patch_vbmeta_flag=0;
 
           . tools/ak3-core.sh
           split_boot
@@ -231,7 +200,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.kernelsu_remote_version }}
+          tag_name: ${{ env.device }}-build-${{ github.run_number }}
           body: |
             Device:
             ${{ env.device }}
