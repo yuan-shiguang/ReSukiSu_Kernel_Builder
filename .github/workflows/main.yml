@@ -9,7 +9,6 @@ env:
     vendor/xiaomi/dipper.config
     vendor/xiaomi/mi845_defconfig
   kernel_patch: |
-    backport_patches.sh
     susfs_patch_to_4.9.patch
     susfs_inline_hook_patches.sh
   kernelsu_patch: |
