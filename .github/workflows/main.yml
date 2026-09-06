@@ -93,7 +93,7 @@ jobs:
           chmod +x ./susfs_inline_hook_patches.sh
           ./susfs_inline_hook_patches.sh
           cp NonGKI_Kernel_Build_2nd/Patches/Patch/susfs_patch_to_4.9.patch ./susfs_patch_to_4.9.patch
-          patch -p1 < ./susfs_patch_to_4.9.patch
+          patch -p1 --ignore-whitespace < ./susfs_patch_to_4.9.patch
 
       - name: "AOSP-Clang: Restore"
         id: aosp_clang_restore
