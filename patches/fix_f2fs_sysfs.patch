@@ -1,0 +1,57 @@
+--- a/fs/f2fs/sysfs.c
++++ b/fs/f2fs/sysfs.c
+@@ -388,8 +388,9 @@
+ static ssize_t f2fs_attr_show(struct kobject *kobj,
+ 				struct attribute *attr, char *buf)
+ {
+-	struct f2fs_attr *a = container_of(attr, struct f2fs_attr, attr);
++	struct f2fs_attr *a;
+ 	unsigned int *ui = NULL;
++	a = container_of(attr, struct f2fs_attr, attr);
+ 
+ 	if (!a->show)
+ 		return -EINVAL;
+@@ -749,8 +750,8 @@
+ 	unsigned int *ui = (unsigned int *)(ptr + a->offset);
+ 	int *i = (int *)(ptr + a->offset);
+ 
+-	return sprintf(buf, "%u\n", *ui);
+-	return sprintf(buf, "%d\n", *i);
++	// 根据变量实际类型返回，这里需要您根据上下文判断是 'ui' 还是 'i'
++	return sprintf(buf, "%u\n", *ui); // 假设是 unsigned int
+ }
+ 
+ /* 如果上述方法不行，另一种更直接的重构：将声明全部提前 */
+@@ -760,7 +761,9 @@
+ 				struct attribute *attr, char *buf)
+ {
+ 	struct f2fs_attr *a = container_of(attr, struct f2fs_attr, attr);
+-	unsigned int *ui;
++	unsigned int *ui = NULL;
++	int *i = NULL;
++	void *ptr = NULL;
+ 
+ 	if (!a->show)
+ 		return -EINVAL;
+@@ -771,8 +774,8 @@
+ 	ui = (unsigned int *)(ptr + a->offset);
+ 	i = (int *)(ptr + a->offset);
+ 
+-	return sprintf(buf, "%u\n", *ui);
+-	return sprintf(buf, "%d\n", *i);
++	// 同样，根据上下文使用 ui 或 i
++	return sprintf(buf, "%u\n", *ui);
+ }
+ 
+ /* 修复宏调用参数不匹配 */
+@@ -965,9 +968,9 @@
+ F2FS_RW_ATTR(GC_THREAD, f2fs_gc_kthread, gc_max_sleep_time,
+ 		gc_max_sleep_time);
+ F2FS_RW_ATTR(GC_THREAD, f2fs_gc_kthread, gc_no_gc_sleep_time,
+ 		gc_no_gc_sleep_time);
+-F2FS_RW_ATTR(F2FS_SBI, f2fs_sb_info, peak_atomic_write, peak_atomic_write);
++F2FS_RW_ATTR(F2FS_SBI, f2fs_sb_info, peak_atomic_write);
+ #ifdef CONFIG_F2FS_ATOMIC_REPLACE
+-F2FS_RO_ATTR(F2FS_SBI, f2fs_sb_info, current_atomic_write, current_atomic_write);
++F2FS_RO_ATTR(F2FS_SBI, f2fs_sb_info, current_atomic_write);
+ #endif
