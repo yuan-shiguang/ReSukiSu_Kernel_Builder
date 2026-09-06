@@ -78,7 +78,6 @@ jobs:
       - name: Setup KernelSU
         run: |
           curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash
-          sed -i '/^.*TP hooks are incompatible.*$/d' drivers/kernelsu/Kbuild
           echo 'CONFIG_KPROBES=y' >>arch/arm64/configs/merged_defconfig
           echo 'CONFIG_HAVE_KPROBES=y' >>arch/arm64/configs/merged_defconfig
           echo 'CONFIG_KPROBE_EVENTS=y' >>arch/arm64/configs/merged_defconfig
