@@ -88,12 +88,14 @@ jobs:
 
       - name: Apply kernel patch
         run: |
-          git clone https://github.com/JackA1ltman/NonGKI_Kernel_Build_2nd.git
+          git clone https://github.com/yuan-shiguang/NonGKI_Kernel_Build_2nd.git
           cp NonGKI_Kernel_Build_2nd/Patches/Patch/susfs_patch_to_4.9.patch ./susfs_patch_to_4.9.patch
           patch -p1 -t < ./susfs_patch_to_4.9.patch
           cp NonGKI_Kernel_Build_2nd/Patches/susfs_inline_hook_patches.sh ./susfs_inline_hook_patches.sh
           chmod +x ./susfs_inline_hook_patches.sh
           ./susfs_inline_hook_patches.sh
+          cp NonGKI_Kernel_Build_2nd/Patches/stat.c.patch ./stat.c.patch
+          patch -p1 -t < ./stat.c.patch
           
 
       - name: "AOSP-Clang: Restore"
